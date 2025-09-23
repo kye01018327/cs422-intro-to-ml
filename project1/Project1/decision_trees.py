@@ -3,9 +3,6 @@ import numpy as np
 from math import log2
 
 # %%
-from pprint import pprint
-
-# %%
 def calculate_entropy(Y):
     classes, counts = np.unique(Y, return_counts=True)
     p_C = counts / counts.sum()
@@ -42,7 +39,7 @@ def majority_class(Y):
     # Return index of highest count
     idx = np.argmax(counts)
     # Return majority class
-    return classes[idx].item()
+    return classes[idx]
 
 # %%
 def create_leaf(Y):
@@ -53,24 +50,16 @@ def create_leaf(Y):
 
 # %%
 def DT_train_binary_helper(X: np.ndarray, Y: np.ndarray, remaining_features: list, depth: int):
-    # print('SUBTREE----------------')
-    # print(f'X: {X}')
-    # print(f'Y: {Y}')
-    # print(f'remaining_features: {remaining_features}')
-    # print(f'depth: {depth}')
     entropy = calculate_entropy(Y) # Calculate the Entropy (H) for the entire training set
-    # print(f'entropy: {entropy}')
+
     # Base Cases (Return a Leaf)
     if entropy == 0:
-        # print('BASE CASE ENTROPY')
         return create_leaf(Y)
     
     if depth == 0:
-        # print('BASE CASE DEPTH')
         return create_leaf(Y)
     
     if len(remaining_features) == 0:
-        # print('BASE CASE NO REMAINING FEATURES')
         return create_leaf(Y)
 
     # Calculate Information Gain for each split
@@ -80,33 +69,23 @@ def DT_train_binary_helper(X: np.ndarray, Y: np.ndarray, remaining_features: lis
         ig_for_this_feature = calculate_information_gain(feature, Y)
         igs_for_each_feature.append(ig_for_this_feature)
     
-    # print(f'igs_for_each_feature: {igs_for_each_feature}')
     # Choose to split on the feature that gives the best IG
     best_feature_idx = np.argmax(igs_for_each_feature)
     best_feature = remaining_features[best_feature_idx]
     best_ig = igs_for_each_feature[best_feature_idx]
 
-    # print(f'best_feature: {best_feature}')
-    # print(f'best_ig: {best_ig}')
-
     if best_ig == 0:
-        # print('BASE CASE BEST IG == 0')
         return create_leaf(Y)
 
     # Create splits
     splits = []
     best_feature_col = X[:, best_feature]
-    # print(f'best_feature_col: {best_feature_col}')
     feature_classes = np.unique(best_feature_col)
-    # print(f'feature_classes: {feature_classes}')
     for cls in feature_classes:
         selected_rows = (best_feature_col == cls)
         X_child: np.ndarray = X[selected_rows]
         Y_child = Y[selected_rows]
         splits.append((cls, X_child, Y_child))
-
-    # print('splits: ', end='')
-    # pprint(splits)
 
     # Create child nodes
     nodes = {}
@@ -117,9 +96,9 @@ def DT_train_binary_helper(X: np.ndarray, Y: np.ndarray, remaining_features: lis
         child_remaining_features = [int(f) for f in remaining_features if f != best_feature]
         
         if X_child.shape[0] == 0:
-            nodes[cls.item()] = create_leaf(Y)
+            nodes[cls] = create_leaf(Y)
         else:
-            nodes[cls.item()] = DT_train_binary_helper(X_child, Y_child, child_remaining_features, new_depth)
+            nodes[cls] = DT_train_binary_helper(X_child, Y_child, child_remaining_features, new_depth)
     
     # Create node
     node = {
@@ -141,12 +120,9 @@ def DT_make_prediction(x: np.ndarray, DT: dict):
     # Base Cases
     if node_type == 'leaf':
         result = DT['result']
-        # print(result)
         return result
 
     # Recursive Cases
-    # pprint(DT)
-
     node_feature = DT['feature']
     selected_child = x[node_feature]
     return DT_make_prediction(x, DT['children'][selected_child])
@@ -167,3 +143,4 @@ def DT_test_binary(X: np.ndarray, Y: np.ndarray, DT: dict):
     num_matching = np.sum(intersection)
     accuracy = num_matching / len(Y)
     return accuracy
+
