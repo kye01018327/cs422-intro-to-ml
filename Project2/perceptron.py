@@ -3,6 +3,7 @@ import numpy as np
 from utils import load_data
 
 # %%
+# Test load data
 num = 1
 print(load_data(f'data_{num}.txt'))
 
