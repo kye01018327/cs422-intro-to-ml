@@ -4,40 +4,36 @@ from utils import load_data
 
 # %%
 # Test load data
-num = 1
-print(load_data(f'data_{num}.txt'))
+num = 2
+X, Y = load_data(f'data_{num}.txt')
+print(X)
+print(Y)
 
 # %%
-def perceptron_train(X, Y):
-    """
-    Train perceptron.
-
-    Pseudocode:
+def perceptron_train(X: np.ndarray, Y: np.ndarray):
     # Initialize weights and bias
-        # Initialize weights vector to have same dimension as feature vector, all initial values as 0
-        # Initialize bias as a scalar with initial value of 0
-    # Until convergence (no change over one epoch), train weights and bias
-        # For each feature vector in the feature dataset,
-            # Calculate the activation
-                # This being the sum of the product of the weight vector and feature vector, plus the bias
-            # Evaluate whether the activation aligns with the label (signed margin)
-            # If signed margin is negative (activation is opposite direction of label), adjust weights and bias
-                # if signed margin is negative (ya <= 0)
-                    # w = w + yx
-                    # b = b + y
-                    # Track that a change occurred in this epoch
-        # If no change occurred in epoch, return weight vector and bias
-        # Keep track of number of epochs, if epochs exceed a limit, throw error
-    Return:
-        w: ndarray
-            trained weight vector
-        b: float
-            trained bias
-    """
-    
+    w, b = np.zeros(X.shape[1]), 0
 
-    pass
+    # Until convergence
+    epoch_limit = 500
+    no_changes = False
+    num_epochs = 1
+    while not no_changes:
+        no_changes = True
+        for x, y in zip(X, Y):
+            a = w @ x + b
+            if y * a > 0:
+                continue
+            no_changes = False
+            w = w + y * x
+            b = b + y
+        if no_changes:
+            return w, b
+        if num_epochs > epoch_limit:
+            raise Exception('Exceeded epoch limit')
+        num_epochs += 1
 
+perceptron_train(X, Y)
 # %%
 def perceptron_test(X_test, Y_test, w, b):
     pass
