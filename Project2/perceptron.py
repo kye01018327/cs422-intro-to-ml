@@ -1,15 +1,5 @@
-# %%
 import numpy as np
-from utils import load_data
 
-# %%
-# Test load data
-num = 2
-X, Y = load_data(f'data_{num}.txt')
-print(X)
-print(Y)
-
-# %%
 def perceptron_train(X: np.ndarray, Y: np.ndarray):
     # Initialize weights and bias
     w, b = np.zeros(X.shape[1]), 0
@@ -33,8 +23,13 @@ def perceptron_train(X: np.ndarray, Y: np.ndarray):
             raise Exception('Exceeded epoch limit')
         num_epochs += 1
 
-perceptron_train(X, Y)
-# %%
-def perceptron_test(X_test, Y_test, w, b):
-    pass
+def perceptron_test(X_test: np.ndarray, Y_test: np.ndarray, w, b):
+    predictions = [1 if w @ x + b > 0 else -1 for x in X_test]
+    predictions = np.array(predictions)
+    mask = predictions == Y_test
+    accuracy = np.sum(mask) / Y_test.size
+    print(w, b)
+    print(predictions)
+    print(Y_test)
+    return accuracy
 
