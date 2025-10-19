@@ -22,3 +22,31 @@
     
 1. Create a bool list representing the signed activation (prediction) of each feature vector
 2. Find the sum of this bool list and divide by the feature vector length
+
+# gradient_descent.py
+
+## def gradient_descent(df, x_init, eta):
+
+1. Initialize x to x_init
+2. While magnitude of gradient is greater than 1e-4
+    1. Calculate gradient
+    2. Decrement x by the product of gradient and learning rate (eta)
+
+# linear_classifier.py
+
+## def linear_train(X, Y, dLdw, dLdb, eta):
+
+1. While the magnitude of the combined gradient vector of w and b is greater than 1e-4
+    1. Compute gradients
+        1. grad_w = dLdw(...w)
+        2. grad_b = dLdw(...b)
+    2. w = w - eta * dLdw
+    3. b = b - eta * dLdb
+2. Return w, b
+
+## def linear_test(X_test, Y_test, w, b):
+
+1. Create a bool list representing the signed activation (prediction) of each feature vector
+2. Find the sum of this bool list and divide by the feature vector length
+
+
