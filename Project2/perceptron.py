@@ -28,8 +28,5 @@ def perceptron_test(X_test: np.ndarray, Y_test: np.ndarray, w, b):
     predictions = np.array(predictions)
     mask = predictions == Y_test
     accuracy = np.sum(mask) / Y_test.size
-    print(w, b)
-    print(predictions)
-    print(Y_test)
     return accuracy
 
