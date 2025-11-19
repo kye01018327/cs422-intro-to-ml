@@ -27,7 +27,11 @@ Calculate w, b for all triplets
 Validate the w, b of each combination of points
 Compute the margin, keep the w, b of the largest margin
 
-# plot_data_and_boundary(data, w, b):
+## svm_test_brute(w, b, x):
+
+Calculate class of point using decision boundary
+
+## plot_data_and_boundary(data, w, b):
 
 Plot data points
 Compute margin
@@ -44,3 +48,9 @@ Plot non-vertical lines
     Plot decision boundary
     Plot margin boundary
 Miscellaneous settings
+
+## svm_train_multiclass(training_data):
+
+For each class
+    Convert labels to +1 and -1 (for rest of classes)
+    Train binary SVM one vs rest
