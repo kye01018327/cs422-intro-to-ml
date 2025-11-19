@@ -7,101 +7,171 @@ def distance_point_to_hyperplane(pt: np.ndarray, w: np.ndarray, b):
 
 def compute_margin(data: np.ndarray, w: np.ndarray, b):
     X = data[:, :-1]
-    min_dist_to_boundary = float('inf')
-    for pt in X:
-        dist = distance_point_to_hyperplane(pt, w, b) 
-        if dist < min_dist_to_boundary:
-            min_dist_to_boundary = dist
-    margin = 2 * min_dist_to_boundary
-    return margin
+    Y = data[:, -1]
+    min_margin = float('inf')
+    for x, y in zip(X, Y):
+        margin = y * (w @ x + b) / np.linalg.norm(w)
+        if margin < min_margin:
+            min_margin = margin
+    return min_margin
 
-def svm_train_brute(training_data: np.ndarray):
-    # Preprocessing
-    # Separate into classes
-    positive_set = []
-    negative_set = []
+def generate_triplet_parameters(set1, set2, W: list, B: list, support_vectors: list):
+    for i in range(len(set1)):
+        for j in range(i + 1, len(set1)):
+            for k in range(len(set2)):
+                x1 = set1[i][:-1]
+                x2 = set1[j][:-1]
+                x3 = set2[k][:-1]
+                A = np.vstack([
+                    np.append(x1, 1),
+                    np.append(x2, 1),
+                    np.append(x3, 1)
+                ])
+                y = np.array([1, 1, -1])
+                try:
+                    solution = np.linalg.solve(A, y)
+                    w = solution[:2]
+                    b = solution[2]
+                    W.append(w)
+                    B.append(b)
+                    support_vectors.append((set1[i], set1[j], set2[k]))
+                except np.linalg.LinAlgError:
+                    continue
+
+def train_svm_brute(training_data):
+    # Partition data by class
+    positive_set, negative_set = [], []
     for pt in training_data:
-        label = pt[-1]
-        if label == 1:
+        if pt[-1] == 1:
             positive_set.append(pt)
-        elif label == -1:
+        elif pt[-1] == -1:
             negative_set.append(pt)
 
-    positive_set = np.array(positive_set)
-    negative_set = np.array(negative_set)
+    positive_set, negative_set = np.array(positive_set), np.array(negative_set)
 
-    # Enumerate all possible support-vector combinations
-    # 2 support vectors
+    # Enumerate all possible support-vector sets
+    support_vectors = []
+    pairs = []
+    for pos in positive_set:
+        for neg in negative_set:
+            pairs.append((pos,neg))
 
-    two_sv = []
-    for pos_pt in positive_set:
-        for neg_pt in negative_set:
-            two_sv.append((pos_pt, neg_pt))
-    two_sv = np.array(two_sv)
+    pairs = np.array(pairs)
 
-    # Compute w and b for each pair of support vectors
-    for pair in two_sv:
-        positive_pt = pair[0][:-1]
-        negative_pt = pair[1][:-1]
-        dist = positive_pt - negative_pt
-        dir_w = dist / np.linalg.norm(dist)
-        gamma = np.linalg.norm(dist / 2)
-        this_w = dir_w / gamma
-        b = 1 - this_w @ positive_pt
+    # Calculate w, b for all pairs
+    W, B = [], []
+    for pos, neg in pairs:
+        x_pos, x_neg = pos[:-1], neg[:-1]
+        d = x_pos - x_neg
+        norm_d = np.linalg.norm(d)
+        dir_w = d / norm_d
 
-    # Separate into classes
+        w = dir_w * 2 / norm_d
 
-    # Enumerate all possible support-vector combinations
-    # 2 support vectors
-    # 3 support vectors
-    pass
+        b = 1 - w @ x_pos
+        W.append(w)
+        B.append(b)
+        support_vectors.append((pos, neg))
+    
+    generate_triplet_parameters(positive_set, negative_set, W, B, support_vectors)
+    generate_triplet_parameters(negative_set, positive_set, W, B, support_vectors)
+
+    # Validate each candidate (w, b)
+
+    valid_W, valid_B, valid_S = [], [], []
+    eps = 1e-8
+    for w, b, s in zip(W, B, support_vectors):
+        is_valid = True
+        for point in training_data:
+            x = point[:-1]
+            y = point[-1]
+            if y * (w @ x + b) < 1 - eps:
+                is_valid = False
+                break
+        if is_valid:
+            valid_W.append(w)
+            valid_B.append(b)
+            valid_S.append(s)
+
+    valid_W = np.array(valid_W)
+    valid_B = np.array(valid_B)
+    valid_S = np.array(valid_S)
+
+    # Compute margin, keep (w, b) with largest margin
+
+    max_margin = 0
+    min_idx = None
+    for w, b, s in zip(valid_W, valid_B, valid_S):
+        margin = compute_margin(training_data, w, b)
+        if margin > max_margin:
+            max_margin = margin
+            w_db, b_db, S = w, b, s
+
+    return w_db, b_db, S
 
 def plot_data_and_boundary(data, w, b):
-    """
-    Plots 2D data points and the SVM decision boundary.
+    # --- Plotting the Data Points (No Change) ---
+    for item in data:
+        if item[-1] == 1:
+            plt.plot(item[0], item[1], 'b+')
+        else:
+            plt.plot(item[0], item[1], 'ro')
+
+    min_margin = compute_margin(data, w, b)
+    m = max(data[:, :-1].max(), abs(data[:, :-1].min())) + 1
     
-    Parameters:
-        data : numpy array of shape (N, 3)
-               Each row: [x1, x2, y], where y in {-1, 1}
-        w    : numpy array of shape (2,), normal vector of boundary
-        b    : float, bias term
-    """
-
-    # 1. Separate positive and negative points
-    pos = data[data[:, 2] == 1]
-    neg = data[data[:, 2] == -1]
-
-    # 2. Plot points
-    plt.scatter(pos[:, 0], pos[:, 1], color='blue', label='Positive (+1)')
-    plt.scatter(neg[:, 0], neg[:, 1], color='red', label='Negative (-1)')
-
-    # 3. Plot decision boundary
-    # Decision boundary: w1*x1 + w2*x2 + b = 0
-    x_vals = np.linspace(min(data[:,0])-1, max(data[:,0])+1, 200)
-    if w[1] != 0:
-        # Solve for x2
-        y_vals = -(w[0] * x_vals + b) / w[1]
+    # --- Plotting the Decision Boundary and Margins (Corrected) ---
+    
+    # Check if w[1] is close to zero (indicating a near-vertical line)
+    if np.isclose(w[1], 0):
+        # The boundary is x0 = -b / w[0] (a vertical line)
+        x0_boundary = -b / w[0]
+        
+        # Calculate the margin boundaries
+        # x0_plus_margin = (-b + min_margin * np.linalg.norm(w)) / w[0]
+        # x0_minus_margin = (-b - min_margin * np.linalg.norm(w)) / w[0]
+        # The equation for the margin boundaries are: w[0]x0 + b = +- min_margin * ||w||
+        
+        norm_w = np.linalg.norm(w)
+        x0_plus_margin = (-b - min_margin * norm_w) / w[0]
+        x0_minus_margin = (-b + min_margin * norm_w) / w[0]
+        
+        # Create a range for the y-axis (x1) to plot the vertical lines
+        x1 = np.linspace(-m, m) 
+        
+        # Decision Boundary
+        # plt.plot expects x, y. For a vertical line, x is constant, y is a range.
+        plt.plot([x0_boundary, x0_boundary], [x1.min(), x1.max()], 
+                 color='red', linewidth=2, label='Decision Boundary')
+        
+        # Margin Boundaries
+        plt.plot([x0_plus_margin, x0_plus_margin], [x1.min(), x1.max()], 
+                 color='orange', linestyle='--', label='Margin Boundary')
+        plt.plot([x0_minus_margin, x0_minus_margin], [x1.min(), x1.max()], 
+                 color='orange', linestyle='--')
+                 
     else:
-        # Vertical line case
-        x_vals = np.full(200, -b / w[0])
-        y_vals = np.linspace(min(data[:,1])-1, max(data[:,1])+1, 200)
+        # Original logic for non-vertical lines (where x1 is a function of x0)
+        x0 = np.linspace(-m, m)
+        
+        # The original calculations for x1 as a function of x0 (for horizontal and diagonal lines)
+        x1_boundary = (-w[0] * x0 - b) / w[1]
+        x1_plus_margin = (-w[0] * x0 - (b - min_margin * np.linalg.norm(w))) / w[1]
+        x1_minus_margin = (-w[0] * x0 - (b + min_margin * np.linalg.norm(w))) / w[1]
 
-    plt.plot(x_vals, y_vals, 'k-', label='Decision boundary')
+        # Plot the lines
+        plt.plot(x0, x1_boundary, color='red', linewidth=2, label='Decision Boundary')
+        plt.plot(x0, x1_plus_margin, color='orange', linestyle='--', label='Margin Boundary')
+        plt.plot(x0, x1_minus_margin, color='orange', linestyle='--')
 
-    # 4. Plot margins (optional)
-    if w[1] != 0:
-        margin = 1 / np.linalg.norm(w)
-        plt.plot(x_vals, y_vals + margin, 'k--', label='Margin')
-        plt.plot(x_vals, y_vals - margin, 'k--')
-    else:
-        margin = 1 / np.linalg.norm(w)
-        plt.axvline(x=-b/w[0] + margin, linestyle='--', color='k')
-        plt.axvline(x=-b/w[0] - margin, linestyle='--', color='k')
-
-    # 5. Labels & legend
-    plt.xlabel('x1')
-    plt.ylabel('x2')
-    plt.title('SVM Decision Boundary')
+    # --- Final Plot Settings (No Change) ---
+    plt.axis([-m, m, -m, m])
+    plt.xlabel('$x_0$')
+    plt.ylabel('$x_1$')
+    plt.title('Data, Boundary, and Margins')
     plt.legend()
-    plt.axis('equal')
+    plt.grid(True)
     plt.show()
+
+# [Image of a 2D scatter plot showing a decision boundary and two parallel margin lines, 
+# with the decision boundary being vertical, separating two different classes of data points]

@@ -100,4 +100,3 @@ def plot_training_data_multi(data):
   m = max(data.max(), abs(data.min()))+1
   plt.axis([-m, m, -m, m])
   plt.show()
-
