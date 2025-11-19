@@ -91,13 +91,12 @@ def svm_train_brute(training_data):
     # Validate the w, b of each combination of points
 
     valid_W, valid_B, valid_S = [], [], []
-    eps = 1e-8
     for w, b, s in zip(W, B, support_vectors):
         is_valid = True
         for point in training_data:
             x = point[:-1]
             y = point[-1]
-            if y * (w @ x + b) < 1 - eps:
+            if y * svm_test_brute(w, b, x) != 1:
                 is_valid = False
                 break
         if is_valid:
@@ -106,22 +105,24 @@ def svm_train_brute(training_data):
             valid_S.append(s)
 
     # Compute margin, keep w, b, S with largest margin
-
-    max_margin = 0
+    max_margin = -np.inf
+    w_db, b_db, S = None, None, None
     for w, b, s in zip(valid_W, valid_B, valid_S):
         margin = compute_margin(training_data, w, b)
         if margin > max_margin:
             max_margin = margin
             w_db, b_db, S = w, b, s
-
     return w_db, b_db, np.array(S)
 
 def svm_test_brute(w: np.ndarray, b, x: np.ndarray):
+    # Calculate class of point using decision boundary
     y = w @ x + b
-    if y > 0:
+    eps = 1e-8
+    if y > 1:
         return 1
-    elif y <= 0:
+    if y < 1 - eps: 
         return -1
+    return y
 
 def plot_data_and_boundary(data, w, b):
     # Plot data points
@@ -187,3 +188,22 @@ def plot_data_and_boundary(data, w, b):
     plt.legend()
     plt.grid(True)
     plt.show()
+
+def svm_train_multiclass(training_data):
+    data, num_classes = training_data
+    classes = [i for i in range(1, num_classes + 1)]
+    W, B = [], []
+    # For each class
+    for c in classes:
+        # Convert labels to +1 and -1 (for all others)
+        binary_data = data.copy()
+        binary_data[:, -1] = np.where(binary_data[:, -1] == c, 1, -1)
+        
+        # Train binary SVM one vs rest
+        w, b, _ = svm_train_brute(binary_data)
+        W.append(w)
+        B.append(b)
+    return W, B
+
+def svm_test_multiclass(W, B, x):
+    pass
