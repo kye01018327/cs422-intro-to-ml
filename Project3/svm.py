@@ -93,21 +93,23 @@ def svm_train_brute(training_data):
             valid_B.append(b)
             valid_S.append(s)
 
-    valid_W = np.array(valid_W)
-    valid_B = np.array(valid_B)
-    valid_S = np.array(valid_S)
-
     # Compute margin, keep (w, b) with largest margin
 
     max_margin = 0
-    min_idx = None
     for w, b, s in zip(valid_W, valid_B, valid_S):
         margin = compute_margin(training_data, w, b)
         if margin > max_margin:
             max_margin = margin
             w_db, b_db, S = w, b, s
 
-    return w_db, b_db, S
+    return w_db, b_db, np.array(S)
+
+def svm_test_brute(w: np.ndarray, b, x: np.ndarray):
+    y = w @ x + b
+    if y > 0:
+        return 1
+    elif y <= 0:
+        return -1
 
 def plot_data_and_boundary(data, w, b):
     # --- Plotting the Data Points (No Change) ---
