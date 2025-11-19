@@ -38,7 +38,7 @@ def generate_triplet_parameters(set1, set2, W: list, B: list, support_vectors: l
                 except np.linalg.LinAlgError:
                     continue
 
-def train_svm_brute(training_data):
+def svm_train_brute(training_data):
     # Partition data by class
     positive_set, negative_set = [], []
     for pt in training_data:
