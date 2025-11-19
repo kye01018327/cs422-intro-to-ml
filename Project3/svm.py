@@ -136,7 +136,7 @@ def plot_data_and_boundary(data, w, b):
     margin = compute_margin(data, w, b)
     m = max(data[:, :-1].max(), abs(data[:, :-1].min())) + 1
     
-    # Plot data boundary and margin
+    # Calculate and plot data and margin boundaries
     
     # Check if w[1] is close to zero (case for handling vertical lines)
     if np.isclose(w[1], 0):
@@ -161,7 +161,7 @@ def plot_data_and_boundary(data, w, b):
         plt.plot([x0_minus_margin, x0_minus_margin], [x1.min(), x1.max()], 
                  color='orange', linestyle='--')
 
-    # Plot non vertical lines  
+    # Plot non-vertical lines  
     else:
         x0 = np.linspace(-m, m)
         
