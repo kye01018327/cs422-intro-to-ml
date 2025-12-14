@@ -1,5 +1,4 @@
-firstname_lastname_project4.zip
-kevin_ye_project4.zip
+
 
 def softmax(Z):
 
