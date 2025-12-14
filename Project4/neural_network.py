@@ -6,16 +6,14 @@ np.random.seed(0)
 X, y = make_moons(200, noise=0.2)
 
 
-def softmax(Z):
-    Z_stable = Z - np.max(Z, axis=1, keepdims=True)
-    exp_Z = np.exp(Z_stable)
+def softmax(Z: np.ndarray) -> np.ndarray:
+    exp_Z = np.exp(Z)
     sum_exp_Z = np.sum(exp_Z, axis=1, keepdims=True)
     Y_hat = exp_Z / sum_exp_Z
     return Y_hat
 
 
-def calculate_loss(model: dict, X: np.ndarray, Y: np.ndarray):
-    
+def calculate_loss(model: dict, X: np.ndarray, Y: np.ndarray) -> float:
     # Calculate prediction matrix
     A = X @ model['W1'] + model['b1']
     H = np.tanh(A)
@@ -30,7 +28,7 @@ def calculate_loss(model: dict, X: np.ndarray, Y: np.ndarray):
     return loss
 
 
-def predict(model, x):
+def predict(model: dict, x: np.ndarray):
     a = x @ model['W1'] + model['b1']
     h = np.tanh(a)
     z = h @ model['W2'] + model['b2']
@@ -38,14 +36,14 @@ def predict(model, x):
     return np.argmax(y_hat, axis=1)
 
 
-def fix_y_dimensions(Y: np.ndarray):
+def adjust_y_shape(Y: np.ndarray):
     N = Y.shape[0]
     result = np.zeros((N, 2))
     result[np.arange(N), Y] = 1
     return result
 
 
-def build_model(X: np.ndarray, Y: np.ndarray, nn_hdim, num_passes=20000, print_loss=False):
+def build_model(X: np.ndarray, Y: np.ndarray, nn_hdim: int, num_passes: int = 20000, print_loss: bool = False):
     def parameters(model, X):
         A = X @ model['W1'] + model['b1']
         H = np.tanh(A)
@@ -53,7 +51,7 @@ def build_model(X: np.ndarray, Y: np.ndarray, nn_hdim, num_passes=20000, print_l
         Y_hat = softmax(Z)
         return A,H,Z,Y_hat
 
-    Y = fix_y_dimensions(Y)
+    Y = adjust_y_shape(Y)
     learning_rate = 0.005
     # Initialize weights and biases
     model = {}
