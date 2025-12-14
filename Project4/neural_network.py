@@ -6,7 +6,6 @@ np.random.seed(0)
 X, y = make_moons(200, noise=0.2)
 
 
-# %%
 def softmax(Z):
     Z_stable = Z - np.max(Z, axis=1, keepdims=True)
     exp_Z = np.exp(Z_stable)
@@ -15,7 +14,6 @@ def softmax(Z):
     return Y_hat
 
 
-# %%
 def calculate_loss(model: dict, X: np.ndarray, Y: np.ndarray):
     
     # Calculate prediction matrix
@@ -32,7 +30,6 @@ def calculate_loss(model: dict, X: np.ndarray, Y: np.ndarray):
     return loss
 
 
-# %%
 def predict(model, x):
     a = x @ model['W1'] + model['b1']
     h = np.tanh(a)
@@ -48,7 +45,6 @@ def fix_y_dimensions(Y: np.ndarray):
     return result
 
 
-# %%
 def build_model(X: np.ndarray, Y: np.ndarray, nn_hdim, num_passes=20000, print_loss=False):
     def parameters(model, X):
         A = X @ model['W1'] + model['b1']
@@ -58,11 +54,11 @@ def build_model(X: np.ndarray, Y: np.ndarray, nn_hdim, num_passes=20000, print_l
         return A,H,Z,Y_hat
 
     Y = fix_y_dimensions(Y)
-    learning_rate = 0.01
+    learning_rate = 0.005
     # Initialize weights and biases
     model = {}
-    model['W1'] = np.random.randn(2,nn_hdim) * 0.1
-    model['W2'] = np.random.randn(nn_hdim,2) * 0.1
+    model['W1'] = np.random.randn(2,nn_hdim)
+    model['W2'] = np.random.randn(nn_hdim,2)
     model['b1'] = np.zeros((1,nn_hdim))
     model['b2'] = np.zeros((1,2))
 
@@ -87,13 +83,6 @@ def build_model(X: np.ndarray, Y: np.ndarray, nn_hdim, num_passes=20000, print_l
     return model
 
 
-# %%
-# Display data
-plt.scatter(X[:, 0], X[:, 1], s=40, c=y, cmap=plt.cm.Spectral)
-
-
-# %%
-
 def plot_decision_boundary(pred_func, X, y):
     x_min, x_max = X[:, 0].min() - 0.5, X[:, 0].max() + .5
     y_min, y_max = X[:, 1].min() - .5, X[:, 1].max() + .5
@@ -106,7 +95,6 @@ def plot_decision_boundary(pred_func, X, y):
 
     plt.contourf(xx, yy, Z, cmap=plt.cm.Spectral)
     plt.scatter(X[:, 0], X[:, 1], c=y, cmap=plt.cm.Spectral)
-
 
 # %%
 plt.figure(figsize=(16,32))
