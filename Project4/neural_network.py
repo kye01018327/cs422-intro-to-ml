@@ -1,9 +1,5 @@
-# %%
 import matplotlib.pyplot as plt
 import numpy as np
-from sklearn.datasets import make_moons
-np.random.seed(0)
-X, y = make_moons(200, noise=0.2)
 
 
 def softmax(Z: np.ndarray) -> np.ndarray:
@@ -93,15 +89,3 @@ def plot_decision_boundary(pred_func, X, y):
 
     plt.contourf(xx, yy, Z, cmap=plt.cm.Spectral)
     plt.scatter(X[:, 0], X[:, 1], c=y, cmap=plt.cm.Spectral)
-
-# %%
-plt.figure(figsize=(16,32))
-hidden_layer_dimensions = [1, 2, 3, 4]
-for i, nn_hdim in enumerate(hidden_layer_dimensions):
-    plt.subplot(5, 2, i+1)
-    plt.title('HiddenLayerSize%d' % nn_hdim)
-    model = build_model(X, y, nn_hdim)
-    plot_decision_boundary(lambda x: predict(model, x), X, y)
-plt.show()
-
-# %%
