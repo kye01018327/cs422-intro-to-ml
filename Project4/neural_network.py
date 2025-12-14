@@ -41,6 +41,17 @@ def predict(model, x):
     return np.argmax(y_hat)
 
 
+# %%
+def build_model(X, y, nn_hdim=500, num_passes=20000, print_loss=False):
+    # Initialize weights and biases
+    model = {}
+    model['W1'] = np.zeros((2,500))
+    model['W2'] = np.zeros((500,2))
+    model['b1'] = np.zeros((1,500))
+    model['b2'] = np.zeros((1,2))
+    
+
+build_model(X, y)
 
 
 # %%
